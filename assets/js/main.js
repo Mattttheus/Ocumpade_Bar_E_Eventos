@@ -19,7 +19,7 @@ const SITE = {
   address: "Rua das Orquídeas, 619 — Cajamar Portais, Cajamar - SP",
   mapsQuery: "Rua das Orquídeas, 619, Cajamar Portais, Cajamar - SP",
 
-  instagram: "https://instagram.com/", // TODO: coloque o @ do perfil
+  instagram: "https://www.instagram.com/ocumpadree/",
   facebook: "https://facebook.com/", // TODO: coloque a página
 
   hours: [
@@ -154,4 +154,77 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ---------- Ano no rodapé ---------- */
   const yearEl = document.querySelector("[data-year]");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+  initInstagramEmbeds();
+  initTilt3D();
 });
+
+/* =========================================================
+   Instagram — fotos e vídeos reais do perfil
+   =========================================================
+   Cada bloco [data-ig-embed] no HTML tem um atributo
+   data-ig-url. Deixe vazio para mostrar um placeholder, ou
+   cole ali o link de um post/reels público (Instagram > ... >
+   Copiar link) para o post/vídeo real aparecer embutido no
+   site — sem precisar de chave de API. */
+function initInstagramEmbeds() {
+  const embeds = document.querySelectorAll("[data-ig-embed]");
+  if (!embeds.length) return;
+
+  let hasReal = false;
+  embeds.forEach((el) => {
+    const url = (el.getAttribute("data-ig-url") || "").trim();
+    if (url.startsWith("http")) {
+      hasReal = true;
+      el.classList.add("ig-embed--ready");
+      el.innerHTML = `<blockquote class="instagram-media" data-instgrm-permalink="${url}" data-instgrm-version="14" style="margin:0;width:100%;"></blockquote>`;
+    } else {
+      el.classList.add("ig-embed--placeholder");
+      el.innerHTML =
+        '<div class="ig-embed__ph"><span class="ig-embed__icon">📸</span><p>Cole aqui o link do post ou reels<br><code>data-ig-url="https://www.instagram.com/p/..."</code></p></div>';
+    }
+  });
+
+  if (!hasReal) return;
+
+  if (window.instgrm) {
+    window.instgrm.Embeds.process();
+    return;
+  }
+  const script = document.createElement("script");
+  script.src = "https://www.instagram.com/embed.js";
+  script.async = true;
+  script.onload = () => window.instgrm && window.instgrm.Embeds.process();
+  document.body.appendChild(script);
+}
+
+/* =========================================================
+   Efeito 3D (tilt) — cards inclinam sutilmente seguindo o mouse
+   ========================================================= */
+function initTilt3D() {
+  const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!finePointer || reduceMotion) return;
+
+  const maxTilt = 8; // graus
+
+  document.querySelectorAll(".tilt").forEach((card) => {
+    const shine = card.querySelector(".tilt__shine");
+
+    card.addEventListener("mousemove", (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+      const rotateY = (x - 0.5) * maxTilt * 2;
+      const rotateX = (0.5 - y) * maxTilt * 2;
+
+      card.style.transform = `perspective(900px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateY(-6px) scale(1.015)`;
+      if (shine) shine.style.background = `radial-gradient(circle at ${x * 100}% ${y * 100}%, rgba(255,255,255,.16), transparent 60%)`;
+    });
+
+    card.addEventListener("mouseleave", () => {
+      card.style.transform = "";
+      if (shine) shine.style.background = "transparent";
+    });
+  });
+}
