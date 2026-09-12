@@ -36,6 +36,19 @@ function waLink(messageKey) {
   return `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(msg)}`;
 }
 
+/* Faz um .ph-image mostrar o placeholder estilizado se a imagem falhar
+   (arquivo ainda não existe, ou link externo expirado/quebrado). */
+function wireImagePlaceholder(img) {
+  img.addEventListener("error", () => img.closest(".ph-image")?.classList.add("is-missing"), { once: true });
+  if (img.complete && img.naturalWidth === 0) {
+    img.closest(".ph-image")?.classList.add("is-missing");
+  }
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   /* Preenche todos os links/botões que apontam pro WhatsApp */
   document.querySelectorAll("[data-wa]").forEach((el) => {
@@ -79,12 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ---------- Placeholder de imagem: some se a foto real não existir ---------- */
-  document.querySelectorAll(".ph-image img").forEach((img) => {
-    img.addEventListener("error", () => img.closest(".ph-image")?.classList.add("is-missing"), { once: true });
-    if (img.complete && img.naturalWidth === 0) {
-      img.closest(".ph-image")?.classList.add("is-missing");
-    }
-  });
+  document.querySelectorAll(".ph-image img").forEach(wireImagePlaceholder);
 
   /* ---------- Revelar seções ao rolar ---------- */
   const revealEls = document.querySelectorAll("[data-reveal]");
@@ -157,6 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   initInstagramEmbeds();
   initTilt3D();
+  initPromoFeed();
 });
 
 /* =========================================================
@@ -196,6 +205,64 @@ function initInstagramEmbeds() {
   script.async = true;
   script.onload = () => window.instgrm && window.instgrm.Embeds.process();
   document.body.appendChild(script);
+}
+
+/* =========================================================
+   Promoções sincronizadas automaticamente do Instagram
+   =========================================================
+   Lê assets/data/instagram-posts.json — gerado pelo GitHub Action
+   .github/workflows/instagram-sync.yml (veja docs/instagram-api-setup.md
+   para configurar). Enquanto não estiver configurado, o arquivo existe
+   com posts: [] e a seção mostra uma mensagem simpática no lugar. */
+async function initPromoFeed() {
+  const grid = document.querySelector("#promo-grid");
+  if (!grid) return;
+
+  try {
+    const res = await fetch("assets/data/instagram-posts.json", { cache: "no-store" });
+    if (!res.ok) return;
+    const data = await res.json();
+
+    const updatedEl = document.querySelector("[data-promo-updated]");
+    if (updatedEl && data.updatedAt) {
+      const d = new Date(data.updatedAt);
+      updatedEl.textContent = `Atualizado em ${d.toLocaleDateString("pt-BR")} às ${d.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}`;
+    }
+
+    if (!data.posts || !data.posts.length) {
+      grid.innerHTML = data.updatedAt
+        ? `<p class="promo-empty">Nenhuma promoção marcada com "${escapeHtml(
+            data.keyword || "promo"
+          )}" no momento — siga @ocumpadree pra não perder a próxima.</p>`
+        : '<p class="promo-empty">Em breve: promoções sincronizadas automaticamente do Instagram.</p>';
+      return;
+    }
+
+    grid.innerHTML = data.posts
+      .map((p) => {
+        const caption = escapeHtml((p.caption || "").slice(0, 180));
+        const link = escapeHtml(p.permalink || SITE.instagram);
+        return `
+          <article class="promo-card">
+            <span class="ph-image promo-card__media" data-icon="📸" data-label="ver no Instagram">
+              <img src="${escapeHtml(p.imageUrl || "")}" alt="Promoção Instagram" loading="lazy" />
+            </span>
+            ${p.isVideo ? '<span class="promo-card__play">▶</span>' : ""}
+            <div class="promo-card__body">
+              <p class="promo-card__caption">${caption}</p>
+              <a class="promo-card__link" href="${link}" target="_blank" rel="noopener">Ver no Instagram ↗</a>
+            </div>
+          </article>`;
+      })
+      .join("");
+
+    grid.querySelectorAll(".ph-image img").forEach(wireImagePlaceholder);
+  } catch (err) {
+    // Sem feed ainda (antes do primeiro run do Action) — mantém a mensagem padrão do HTML.
+  }
 }
 
 /* =========================================================

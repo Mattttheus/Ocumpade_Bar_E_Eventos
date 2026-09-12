@@ -1,0 +1,76 @@
+name: Sincronizar promoções do Instagram
+
+on:
+  schedule:
+    - cron: "0 9 * * *" # todo dia às 09:00 UTC (~06:00 em Brasília)
+  workflow_dispatch: {} # permite rodar manualmente em Actions → Run workflow
+
+permissions:
+  contents: write
+
+concurrency:
+  group: instagram-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Tokens de longa duração do Instagram valem ~60 dias. Renovamos a
+      # cada execução (dá bem mais margem) para o token nunca expirar.
+      - name: Renovar token de acesso do Instagram
+        id: refresh
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$IG_ACCESS_TOKEN" ]; then
+            echo "IG_ACCESS_TOKEN não configurado ainda — pulando renovação."
+            echo "token=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          RESP=$(curl -s "https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${IG_ACCESS_TOKEN}")
+          NEW_TOKEN=$(echo "$RESP" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{console.log(JSON.parse(d).access_token||'')}catch(e){console.log('')}})")
+          if [ -z "$NEW_TOKEN" ]; then
+            echo "Não deu pra renovar agora (resposta: $RESP) — usando o token atual."
+            NEW_TOKEN="$IG_ACCESS_TOKEN"
+          fi
+          echo "::add-mask::$NEW_TOKEN"
+          echo "token=$NEW_TOKEN" >> "$GITHUB_OUTPUT"
+
+      # Opcional: só roda se o secret GH_PAT existir (um Personal Access
+      # Token com permissão de "Secrets" no repositório). Sem ele, o token
+      # renovado acima é usado só nesta execução e você precisa atualizar
+      # o secret IG_ACCESS_TOKEN manualmente de tempos em tempos.
+      - name: Salvar o token renovado como secret
+        if: steps.refresh.outputs.token != ''
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "GH_PAT não configurado — pulando atualização automática do secret."
+            exit 0
+          fi
+          gh secret set IG_ACCESS_TOKEN --body "${{ steps.refresh.outputs.token }}" --repo "${{ github.repository }}"
+
+      - name: Buscar posts e gerar assets/data/instagram-posts.json
+        env:
+          TOKEN: ${{ steps.refresh.outputs.token || secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          PROMO_KEYWORD: ${{ vars.PROMO_KEYWORD }}
+        run: node scripts/fetch-instagram.js
+
+      - name: Publicar o JSON atualizado
+        run: |
+          git config user.name "instagram-sync-bot"
+          git config user.email "actions@github.com"
+          git add assets/data/instagram-posts.json
+          git diff --cached --quiet || git commit -m "chore: atualiza promoções do Instagram [skip ci]"
+          git push
