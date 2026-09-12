@@ -317,6 +317,10 @@ select {
    filename) is added to assets/img/. No code changes needed
    later — see assets/img/README.md for the exact file list. */
 .ph-image {
+  /* Must be block-level: aspect-ratio (and absolutely-positioned children
+     used for the placeholder overlay) do not size correctly on inline
+     elements, which is what <span> defaults to. */
+  display: block;
   position: relative;
   overflow: hidden;
   background: linear-gradient(135deg, #2a2016, #171310);
@@ -958,33 +962,71 @@ select {
 /* ---------- Instagram embeds ---------- */
 .ig-grid {
   display: grid;
-  /* Instagram's own embed enforces a ~326px minimum width, so we let the
-     grid decide how many columns fit instead of forcing a fixed count —
-     avoids the real embeds overflowing their column on medium screens. */
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  justify-items: center;
-  gap: 20px;
+  /* Instagram's own embed enforces a ~326px minimum width, so instead of
+     stretching tracks to 1fr (which squashes/mismatches real embeds vs
+     placeholders) we give every card the same fixed-ish width and center
+     the row — keeps things aligned whatever mix of real posts/placeholders
+     you have. */
+  grid-template-columns: repeat(auto-fit, minmax(300px, 340px));
+  justify-content: center;
+  gap: 24px;
   margin-bottom: 36px;
+}
+
+/* Dark "frame" around every card so a white Instagram embed doesn't float
+   loose on the page — it reads as a deliberately matted photo instead. */
+.ig-frame {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ig-frame:hover {
+  transform: translateY(-6px);
+  border-color: var(--color-gold);
+  box-shadow: var(--shadow-pop);
 }
 
 .ig-embed {
   width: 100%;
-  max-width: 380px;
-  border-radius: var(--radius-md);
+  border-radius: calc(var(--radius-md) - 6px);
   overflow: hidden;
-  min-height: 340px;
   display: flex;
+  flex-direction: column;
+}
+
+.ig-embed--placeholder {
+  min-height: 380px;
 }
 
 .ig-embed--ready {
-  background: var(--color-card);
-  align-items: stretch;
+  background: #fff;
+  min-height: 0;
 }
 
 .ig-embed--ready blockquote.instagram-media {
   margin: 0 !important;
   width: 100% !important;
   min-width: 0 !important;
+}
+
+.ig-frame__link {
+  display: block;
+  margin-top: 10px;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-dim);
+  transition: color 0.2s ease;
+}
+
+.ig-frame__link:hover {
+  color: var(--color-gold);
 }
 
 .ig-embed__ph {
@@ -1001,7 +1043,7 @@ select {
   background: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0 10px, rgba(255, 255, 255, 0.045) 10px 20px),
     linear-gradient(135deg, #2a2016, #171310);
   border: 1px dashed var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: calc(var(--radius-md) - 6px);
 }
 
 .ig-embed__icon {
