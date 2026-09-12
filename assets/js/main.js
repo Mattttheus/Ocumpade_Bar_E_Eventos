@@ -1,0 +1,157 @@
+/* =========================================================
+   Bar do Compadre — configurações e comportamento do site
+   =========================================================
+   Tudo que muda com frequência (WhatsApp, endereço, horário,
+   redes sociais) fica centralizado aqui em cima. Edite só
+   este bloco — o resto da página se atualiza sozinho. */
+
+const SITE = {
+  // Número do WhatsApp no formato internacional, só números:
+  // 55 (Brasil) + DDD + número.
+  whatsapp: "5511991147454",
+
+  whatsappMessages: {
+    padrao: "Olá! Vim pelo site do Bar do Compadre e gostaria de mais informações.",
+    orcamento: "Olá! Vim pelo site e quero fazer um orçamento para um evento no Bar do Compadre / Eventos Compadre.",
+    cardapio: "Olá! Vi o cardápio no site do Bar do Compadre e quero fazer um pedido.",
+  },
+
+  address: "Rua das Orquídeas, 619 — Cajamar Portais, Cajamar - SP",
+  mapsQuery: "Rua das Orquídeas, 619, Cajamar Portais, Cajamar - SP",
+
+  instagram: "https://instagram.com/", // TODO: coloque o @ do perfil
+  facebook: "https://facebook.com/", // TODO: coloque a página
+
+  hours: [
+    { dia: "Terça a Quinta", horario: "18h às 00h" },
+    { dia: "Sexta e Sábado", horario: "18h às 02h" },
+    { dia: "Domingo", horario: "16h às 23h" },
+    { dia: "Segunda", horario: "Fechado" },
+  ],
+};
+
+/* ---------- Helpers ---------- */
+function waLink(messageKey) {
+  const msg = SITE.whatsappMessages[messageKey] || SITE.whatsappMessages.padrao;
+  return `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(msg)}`;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  /* Preenche todos os links/botões que apontam pro WhatsApp */
+  document.querySelectorAll("[data-wa]").forEach((el) => {
+    const key = el.getAttribute("data-wa") || "padrao";
+    el.setAttribute("href", waLink(key));
+    el.setAttribute("target", "_blank");
+    el.setAttribute("rel", "noopener");
+  });
+
+  /* Preenche endereço, mapa, instagram, facebook onde marcados */
+  document.querySelectorAll("[data-config='address']").forEach((el) => (el.textContent = SITE.address));
+  document.querySelectorAll("[data-config='instagram']").forEach((el) => el.setAttribute("href", SITE.instagram));
+  document.querySelectorAll("[data-config='facebook']").forEach((el) => el.setAttribute("href", SITE.facebook));
+
+  const mapFrame = document.querySelector("[data-config='map']");
+  if (mapFrame) {
+    mapFrame.src = `https://www.google.com/maps?q=${encodeURIComponent(SITE.mapsQuery)}&output=embed`;
+  }
+
+  const hoursList = document.querySelector("[data-config='hours']");
+  if (hoursList) {
+    hoursList.innerHTML = SITE.hours
+      .map((h) => `<li><span>${h.dia}</span><strong>${h.horario}</strong></li>`)
+      .join("");
+  }
+
+  /* ---------- Menu mobile ---------- */
+  const toggle = document.querySelector(".nav__toggle");
+  const list = document.querySelector(".nav__list");
+  if (toggle && list) {
+    toggle.addEventListener("click", () => {
+      const open = list.classList.toggle("is-open");
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    list.querySelectorAll("a").forEach((a) =>
+      a.addEventListener("click", () => {
+        list.classList.remove("is-open");
+        toggle.setAttribute("aria-expanded", "false");
+      })
+    );
+  }
+
+  /* ---------- Placeholder de imagem: some se a foto real não existir ---------- */
+  document.querySelectorAll(".ph-image img").forEach((img) => {
+    img.addEventListener("error", () => img.closest(".ph-image")?.classList.add("is-missing"), { once: true });
+    if (img.complete && img.naturalWidth === 0) {
+      img.closest(".ph-image")?.classList.add("is-missing");
+    }
+  });
+
+  /* ---------- Revelar seções ao rolar ---------- */
+  const revealEls = document.querySelectorAll("[data-reveal]");
+  if ("IntersectionObserver" in window && revealEls.length) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+    revealEls.forEach((el) => io.observe(el));
+  } else {
+    revealEls.forEach((el) => el.classList.add("is-visible"));
+  }
+
+  /* ---------- Marca o link ativo do menu ao rolar pelas seções ---------- */
+  const sections = document.querySelectorAll("main section[id]");
+  const navLinks = document.querySelectorAll(".nav__link");
+  if ("IntersectionObserver" in window && sections.length) {
+    const navIo = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute("id");
+            navLinks.forEach((link) => {
+              link.classList.toggle("is-active", link.getAttribute("href") === `#${id}`);
+            });
+          }
+        });
+      },
+      { rootMargin: "-45% 0px -50% 0px" }
+    );
+    sections.forEach((sec) => navIo.observe(sec));
+  }
+
+  /* ---------- Formulário de orçamento -> monta mensagem e abre no WhatsApp ---------- */
+  const form = document.querySelector("#form-orcamento");
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const data = new FormData(form);
+      const nome = (data.get("nome") || "").toString().trim();
+      const tipo = (data.get("tipo") || "").toString().trim();
+      const data_evento = (data.get("data_evento") || "").toString().trim();
+      const pessoas = (data.get("pessoas") || "").toString().trim();
+      const mensagem = (data.get("mensagem") || "").toString().trim();
+
+      const linhas = [
+        "Olá! Quero fazer um orçamento pelo site do Bar do Compadre / Eventos Compadre.",
+        nome && `Nome: ${nome}`,
+        tipo && `Tipo de evento/pedido: ${tipo}`,
+        data_evento && `Data desejada: ${data_evento}`,
+        pessoas && `Número de pessoas: ${pessoas}`,
+        mensagem && `Mensagem: ${mensagem}`,
+      ].filter(Boolean);
+
+      const url = `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(linhas.join("\n"))}`;
+      window.open(url, "_blank", "noopener");
+    });
+  }
+
+  /* ---------- Ano no rodapé ---------- */
+  const yearEl = document.querySelector("[data-year]");
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+});
