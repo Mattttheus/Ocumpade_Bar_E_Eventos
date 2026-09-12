@@ -54,6 +54,9 @@ body {
   font-family: var(--font-body);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  /* Trava de segurança: nenhum elemento (ex: um embed externo mal
+     comportado) consegue empurrar a página pra rolagem horizontal. */
+  overflow-x: hidden;
 }
 
 img {
@@ -1148,12 +1151,30 @@ select {
 .ig-embed--ready {
   background: #fff;
   min-height: 0;
+  max-width: 100%;
 }
 
-.ig-embed--ready blockquote.instagram-media {
+.ig-embed__media {
+  /* O widget do Instagram às vezes renderiza com altura/largura próprias
+     e imprevisíveis (principalmente reels) — travamos aqui pra nunca
+     estourar a moldura do card nem empurrar a página pros lados. O link
+     "Ver no Instagram" fica fora, sempre visível, sem precisar rolar. */
+  max-height: 560px;
+  max-width: 100%;
+  overflow: auto;
+}
+
+.ig-embed__media blockquote.instagram-media,
+.ig-embed__media iframe {
   margin: 0 !important;
   width: 100% !important;
+  max-width: 100% !important;
   min-width: 0 !important;
+}
+
+.ig-embed--ready .ig-frame__link {
+  background: #fff;
+  padding: 10px 0 4px;
 }
 
 .ig-frame__link {

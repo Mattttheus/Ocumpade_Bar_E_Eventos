@@ -189,7 +189,11 @@ function initInstagramEmbeds() {
     if (url.startsWith("http")) {
       hasReal = true;
       el.classList.add("ig-embed--ready");
-      el.innerHTML = `<blockquote class="instagram-media" data-instgrm-permalink="${url}" data-instgrm-version="14" style="margin:0;width:100%;"></blockquote>`;
+      // O link de reserva abaixo garante uma saída funcional mesmo se o
+      // widget do Instagram vier quebrado, vazio ou não carregar a tempo.
+      el.innerHTML =
+        `<div class="ig-embed__media"><blockquote class="instagram-media" data-instgrm-permalink="${url}" data-instgrm-version="14" style="margin:0;width:100%;"></blockquote></div>` +
+        `<a class="ig-frame__link" href="${url}" target="_blank" rel="noopener">Ver no Instagram ↗</a>`;
     } else {
       el.classList.add("ig-embed--placeholder");
       el.innerHTML =
