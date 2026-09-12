@@ -10,8 +10,8 @@ Coloque os arquivos direto dentro de `assets/img/` (não crie subpastas):
 
 | Arquivo | Onde aparece | Tamanho sugerido |
 |---|---|---|
-| `logo.jpg` ✅ | Logo no menu e no rodapé — **já preenchido** com a foto de perfil do @ocumpadree no Instagram, mas só em 150×150 px (é o tamanho máximo que o Instagram expõe publicamente). Se você tiver o arquivo original da arte em alta resolução, troque por `logo.jpg` (ou `logo.png`, ajustando o `src=` no [index.html](../../index.html)) num tamanho maior — fica nítido em qualquer tela | 500×500 px ou mais |
-| `favicon.png` ✅ | Ícone da aba do navegador — **já preenchido**, gerado a partir do mesmo logo (mesma limitação de resolução acima) | 192×192 px |
+| `logo.png` ✅ | Logo no menu e no rodapé — **já preenchido** com a arte "O Cumpadre", recortada de uma captura de tela que você enviou (≈163×163 px). Se tiver o arquivo original em alta resolução (o design de origem, não uma captura de tela), troque por esse arquivo com o mesmo nome — fica nítido em telas maiores | 500×500 px ou mais |
+| `favicon.png` ✅ | Ícone da aba do navegador — **já preenchido**, gerado a partir do mesmo logo | 192×192 px |
 | `og-image.jpg` | Prévia ao compartilhar o link (WhatsApp, Instagram, etc.) | 1200×630 px |
 | `hero-bar.jpg` | Foto de fundo do topo da página (fachada ou ambiente do bar) | 1920×1080 px, bem iluminada |
 | `hero-eventos.jpg` | Foto da seção "Eventos Compadre" | 1200×1500 px (vertical) |
