@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://SEU-USUARIO.github.io/SEU-REPOSITORIO/sitemap.xml
+Sitemap: https://Mattttheus.github.io/Ocumpade_Bar_E_Eventos/sitemap.xml
