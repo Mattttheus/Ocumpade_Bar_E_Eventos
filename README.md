@@ -42,27 +42,31 @@ arquivos dentro de `assets/img/` **com o nome exato** pedido em
 [`assets/img/README.md`](assets/img/README.md) — o site passa a exibi-las
 automaticamente, sem editar nada.
 
-## Como publicar no GitHub Pages
+## Publicação no GitHub Pages
 
-1. Crie um repositório novo no GitHub (pode ser público ou privado, mas o
-   Pages gratuito exige repositório público, exceto em contas com GitHub Pro/Team/Enterprise).
-2. Neste diretório, rode:
-   ```bash
-   git init
-   git add .
-   git commit -m "Site inicial Bar do Compadre"
-   git branch -M main
-   git remote add origin https://github.com/SEU-USUARIO/SEU-REPOSITORIO.git
-   git push -u origin main
-   ```
-3. No GitHub: **Settings → Pages → Build and deployment → Source: Deploy
-   from a branch → Branch: `main` / pasta `/ (root)` → Save**.
-4. Em alguns minutos o site fica disponível em
-   `https://SEU-USUARIO.github.io/SEU-REPOSITORIO/`.
-5. Atualize `robots.txt` e `sitemap.xml` trocando `SEU-USUARIO` /
-   `SEU-REPOSITORIO` pela URL final.
+Já está tudo configurado e publicado em:
+**https://Mattttheus.github.io/Ocumpade_Bar_E_Eventos/**
 
-Qualquer novo `git push` para `main` atualiza o site automaticamente.
+O deploy usa GitHub Actions com o workflow padrão do Jekyll
+(`.github/workflows/jekyll-gh-pages.yml`) — qualquer `git push` para `main`
+já builda e publica o site automaticamente (acompanhe em **Actions** no
+GitHub). Não precisa rodar nada manualmente.
+
+Se um dia precisar recriar isso do zero em outro repositório:
+
+```bash
+git init
+git add .
+git commit -m "Site inicial Bar do Compadre"
+git branch -M main
+git remote add origin https://github.com/SEU-USUARIO/SEU-REPOSITORIO.git
+git push -u origin main
+```
+
+E em **Settings → Pages → Build and deployment → Source**, escolha
+**GitHub Actions** (recomendado, já usado aqui) e aceite o workflow
+sugerido "Jekyll" — ou **Deploy from a branch** (`main` / `/ (root)`) para
+o método mais simples, sem build.
 
 ## Testar localmente antes de publicar
 
