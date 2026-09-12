@@ -14,8 +14,9 @@ const SITE = {
     padrao: "Olá! Vim pelo site do Bar do Compadre e gostaria de mais informações.",
     orcamento: "Olá! Vim pelo site e quero fazer um orçamento para um evento no Bar do Compadre / Eventos Compadre.",
     cardapio: "Olá! Vi o cardápio no site do Bar do Compadre e quero fazer um pedido.",
-    espetosPF: "Olá! Quero pedir espetinhos/combos para churrasco (pessoa física).",
-    espetosPJ: "Olá! Sou de uma empresa e quero um orçamento de espetinhos/combos para churrasco (pessoa jurídica, com nota fiscal).",
+    espetosPF: "Olá! Quero pedir um combo de espetinhos para churrasco (pessoa física).",
+    espetosPJ: "Olá! Sou de uma empresa e quero um orçamento de combos de espetinhos para churrasco (pessoa jurídica, com nota fiscal).",
+    espetosRevenda: "Olá! Tenho um bar/restaurante e quero informações sobre revenda e distribuição de espetinhos.",
   },
 
   address: "Rua das Orquídeas, 619 — Cajamar Portais, Cajamar - SP",

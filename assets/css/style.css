@@ -862,11 +862,11 @@ select {
 /* ---------- Espetinhos: cards Pessoa Física / Jurídica ---------- */
 .audience-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 28px;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 960px) {
   .audience-grid {
     grid-template-columns: 1fr;
   }
@@ -876,12 +876,24 @@ select {
   position: relative;
   display: flex;
   flex-direction: column;
-  background: var(--color-card);
+  background: linear-gradient(165deg, #2c2117, var(--color-card) 55%);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 32px;
   box-shadow: var(--shadow-card);
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+}
+
+/* Faixa colorida no topo — deixa a silhueta do card nítida mesmo em fotos/telas escuras */
+.audience-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--color-gold), var(--color-red));
 }
 
 .audience-card:hover {
@@ -892,7 +904,7 @@ select {
 
 .audience-card--highlight {
   border-color: var(--color-gold);
-  background: linear-gradient(160deg, var(--color-card-hover), var(--color-card));
+  background: linear-gradient(165deg, var(--color-card-hover), var(--color-card) 60%);
 }
 
 .audience-card__icon {
